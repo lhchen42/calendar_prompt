@@ -1,7 +1,6 @@
 <template>
-    <div class="calendar-grid">
+    <div>
         <div>{{ info.date.getDate() }}</div>
-        <div>appointment</div>
     </div>
 </template>
 
@@ -12,6 +11,18 @@ export default {
   name: 'calendarGrid',
   props: {
     info: Object
+  },
+  data: function() {
+    return {
+      date: this.info.date,
+      isCurrentMonth: this.info.currentMonth
+    }
+  },
+  computed: {
+
+  },
+  methods: {
+
   }
 }
 </script>
