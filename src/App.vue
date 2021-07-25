@@ -1,23 +1,25 @@
 <template>
-<div>
-  <!-- <img alt="Vue logo" src="./assets/logo.png"> -->
-  <header style="background-color: black; width: 100vw; color: white;">Calendar Header</header>
-  <section>
-    <calendar/>
-  </section>
-  <footer style="background-color: black;"></footer>
-</div>
+  <div>
+    <!-- <img alt="Vue logo" src="./assets/logo.png"> -->
+    <header style="background-color: black; width: 100vw; color: white;">
+      Calendar Header
+    </header>
+    <section>
+      <calendar />
+    </section>
+    <footer style="background-color: black;"></footer>
+  </div>
 </template>
 
 <script>
-import calendar from './components/calendar.vue'
+import calendar from "./components/calendar.vue";
 
 export default {
-  name: 'App',
+  name: "App",
   components: {
-    calendar
-  }
-}
+    calendar,
+  },
+};
 </script>
 
 <style>
@@ -30,7 +32,7 @@ export default {
   display: flex;
   flex-direction: column; */
   min-height: 700px;
-  min-width: 700px;
+  min-width: 1000px;
 }
 
 #app > div {
@@ -39,8 +41,8 @@ export default {
   min-height: 100vh;
 }
 
-#app > div > *{
-  min-width: 700px;
+#app > div > * {
+  min-width: 1100px;
   padding: 30px 0;
   text-align: center;
 }
