@@ -2,7 +2,10 @@
   <div class="calendar">
     <div class="form-container">
       <div class="calendar-form">
-        <calendarForm v-on:submitEvent="addEvent" v-bind:dbUrl="eventsUrl"></calendarForm>
+        <calendarForm
+          v-on:submitEvent="addEvent"
+          v-bind:dbUrl="firestoneUrl"
+        ></calendarForm>
       </div>
     </div>
     <div class="calendar-container">
@@ -24,11 +27,10 @@
             data.currentMonth ? 'currentMonth' : '',
           ]"
           v-for="data in calendarData"
+          v-bind:ref="setGridRef"
           v-bind:key="data.date"
           v-bind:info="data"
           v-bind:firestoneUrl="firestoneUrl"
-          v-bind:reload="reload"
-          @reloadDone="resetReload"
         ></calendarGrid>
       </div>
     </div>
@@ -55,9 +57,9 @@ const months = [
   "Dec",
 ];
 const firebaseDB = "https://fir-ea490-default-rtdb.firebaseio.com/";
+// const employees = ["Sam", "John", "Micheal"];
 // const eventFile = "events.json";
 // const axios = require('axios');
-
 
 export default {
   name: "calendar",
@@ -80,7 +82,7 @@ export default {
         },
       ],
       hideForm: true,
-      reload: 0
+      gridRef: [],
     };
   },
   props: {
@@ -88,50 +90,63 @@ export default {
   },
   methods: {
     nextMonth: function() {
+      this.gridRef = [];
       let newMonth = new Date(this.now).getMonth() + this.increaseValue;
       this.now = new Date(this.now).setMonth(newMonth);
       console.log(new Date(this.now));
     },
     prevMonth: function() {
+      this.gridRef = [];
       let newMonth = new Date(this.now).getMonth() - this.increaseValue;
       this.now = new Date(this.now).setMonth(newMonth);
       console.log(new Date(this.now));
     },
-    addEvent: function() {
+    addEvent: function(event) {
       // add new event to database
       // Here I use google firebase, the database will only keep for 30 days
-      // console.log(event);
-      this.reload=1;
+      for (let i = 0; i < this.gridRef.length; i++) {
+        if (this.gridRef[i].info.date === event.date) {
+          this.gridRef[i].events.push(event);
+          break;
+        }
+      }
     },
-    formatDate: function(date){
-      let month = (date.getMonth()+1).toString();
+    formatDate: function(date) {
+      let month = (date.getMonth() + 1).toString();
       let day = date.getDate().toString();
       let year = date.getFullYear();
 
-      if(month.length<2){
+      if (month.length < 2) {
         month = "0" + month;
       }
-      if(day.length<2){
+      if (day.length < 2) {
         day = "0" + day;
       }
-      return [month, day, year].join("-")
+      return [month, day, year].join("-");
     },
-    resetReload: function(){
+    resetReload: function() {
       this.reload = 0;
-    }
+    },
+    setGridRef: function(el) {
+      if (el) {
+        this.gridRef.push(el);
+      }
+    },
   },
   computed: {
     calendarData: function() {
+      return this.monthData;
+    },
+    monthData: function() {
       let previousMonth = [];
       // let today = new Date()
       let firstDay = new Date(new Date(this.now).setDate(1));
       for (let i = firstDay.getDay(); i > 0; i--) {
-        let date = new Date(new Date(this.now).setDate(1 + i));
+        let date = new Date(new Date(this.now).setDate(1 - i));
         let plain_date = this.formatDate(date);
         previousMonth.push({
           date: plain_date,
           currentMonth: false,
-          events: 0
         });
       }
 
@@ -144,7 +159,6 @@ export default {
         currentMonth.push({
           date: plain_date,
           currentMonth: date.getMonth() == firstDay.getMonth() ? true : false,
-          events: 0
         });
       }
       console.log(previousMonth, currentMonth);
@@ -158,7 +172,7 @@ export default {
     },
   },
   mounted() {
-
+    // console.log(this.gridRef);
   },
 };
 </script>

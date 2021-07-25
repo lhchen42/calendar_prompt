@@ -21,7 +21,7 @@
       </div>
       <div>
         <label> End Time: </label>
-        <input type="time" v-bind:min="stTime" v-bind:max="maxHour" v-model="edTime" required />
+        <input type="time" v-bind:min="stTime" v-bind:max="maxHour" v-model="edTime" v-bind:disabled="disableEdTime" required />
       </div>
       <div>
         <label> Owner: </label>
@@ -51,7 +51,6 @@
 </template>
 
 <script>
-
 // import axios from 'axios'
 
 const minDate = "2000-01-01";
@@ -59,156 +58,258 @@ const minHour = "06:00";
 const maxHour = "23:59";
 // const dbLink = firebaseDB + dbFile;
 
-const axios = require('axios');
+const defaultName = "";
+const defaultStTime = "";
+const defaultEdTime = "";
+const defaultDate = "";
+const defaultNumInvitees = 0;
+const defaultOwner = "";
 
-const reformatDate = function(date){
+const axios = require("axios");
+
+const reformatDate = function (date) {
   //yyyy-mm-dd to mm-dd-yyyy
   let t_date = date.split("-");
   return t_date[1] + "-" + t_date[2] + "-" + t_date[0];
-}
+};
 
-const toDate = function(date, time) {
+const toDate = function (date, time) {
   // time stamp
-  return + new Date(date + " " + time);
-}
+  return +new Date(date + " " + time);
+};
 
-const compareDate = function(date1, date2){
-  let t_date1 = + new Date(date1).setHours(0);
-  let t_date2 = + new Date(date2).setHours(0);
-//   console.log(t_date1.getFullYear()<t_date2.getFullYear())
-    //  && t_date1.getMonth()<t_date2.getMonth
-    //  && t_date1.getDate()<t_date2.getDate())
-  if(t_date1 < t_date2){
-      return false
+const compareDate = function (date1, date2) {
+  let t_date1 = +new Date(date1).setHours(0);
+  let t_date2 = +new Date(date2).setHours(0);
+  //   console.log(t_date1.getFullYear()<t_date2.getFullYear())
+  //  && t_date1.getMonth()<t_date2.getMonth
+  //  && t_date1.getDate()<t_date2.getDate())
+  if (t_date1 < t_date2) {
+    return false;
   }
-  return true
-}
+  return true;
+};
 
 export default {
   name: "calendarForm",
-  props: { 
-    //   dbUrl: String,
-      events: Array
-   },
-  data: function() {
+  props: {
+    events: Array,
+  },
+  data: function () {
     return {
       isActive: false,
       minDate: minDate,
       minHour: minHour,
       maxHour: maxHour,
-      name: "",
-      date: "",
-      stTime: "",
-      edTime: "",
-      owner: "",
-      numInvitees: 0,
+      name: defaultName,
+      date: defaultDate,
+      stTime: defaultStTime,
+      edTime: defaultEdTime,
+      owner: defaultOwner,
+      numInvitees: defaultNumInvitees,
       errors: [],
       firestoneUrl: "https://fir-ea490-default-rtdb.firebaseio.com/",
-      dbUrl: ""
+      eventsUrl: "",
     };
   },
   computed: {
-    invitees: function() {
+    invitees: function () {
       let l = [];
       for (let i = 0; i < this.numInvitees; i++) {
         l.push({ name: "" });
       }
       return l;
     },
-    formatedDate: function(){
-        return reformatDate(this.date);
+    formatedDate: function () {
+      return reformatDate(this.date);
+    },
+    start_time: function () {
+      return toDate(this.formatedDate, this.stTime);
+    },
+    end_time: function () {
+      return toDate(this.formatedDate, this.edTime);
+    },
+    disableEdTime: function() {
+      return this.stTime === "" ? true : false;
     }
   },
   methods: {
-    validateInput: function() {
-        // name: characters other than alphebet or number is disallow
-        // Date: any date before "today" is disallow, also edit to the appointment in the past is disallow
-        // st_Time: time earlier than 6 am is disallow
-        // ed_Time: time earlier than st_Time or later than 11:59 is disallow
-        // owner: characters other than alphebet is disallow
-        // Invitee: characters other than alphebet is disallow
-        // (in case using email is another story)
-        console.log("validate form")
+    validateInput: function () {
+      // name: characters other than alphebet or number is disallow
+      // Date: any date before "today" is disallow, also edit to the appointment in the past is disallow
+      // st_Time: time earlier than 6 am is disallow
+      // ed_Time: time earlier than st_Time or later than 11:59 is disallow
+      // owner: characters other than alphebet is disallow
+      // Invitee: characters other than alphebet is disallow
+      // (in case using email is another story)
+      console.log("validate form");
 
-        this.errors = [];
-        let alnumReg = "^[a-zA-Z0-9]+$";
-        let alReg = "^[a-zA-Z]+$";
-        if(!this.name.match(alnumReg)){
-            this.errors.push("name: only alphbet characters and number");
+      this.errors = [];
+      let alnumReg = "^[a-zA-Z0-9]+$";
+      let alReg = "^[a-zA-Z]+$";
+      if (!this.name.match(alnumReg)) {
+        this.errors.push("name: only alphbet characters and number");
+      }
+
+      //compareDate return false if arg1 is earlier than arg2, in year, month and date
+      if (!compareDate(this.formatedDate, Date.now())) {
+        this.errors.push("date: cannot be the past");
+      }
+
+      //toDate return time stamp
+      if (this.start_time < +new Date(this.formatedDate).setHours(6)) {
+        this.errors.push("start time: cannot be earlier than 6 am");
+      }
+
+      // console.log(end_time<=start_time, end_time, start_time, this.edTime, this.stTime);
+      if (this.end_time <= this.start_time) {
+        this.errors.push("end time: cannot be earlier or same to start time");
+      }
+
+      if (this.end_time > toDate(this.formatedDate, "23:59")) {
+        this.errors.push("end time: cannot be later than 23:59/11:59 PM");
+      }
+
+      if (!this.owner.match(alReg)) {
+        this.errors.push("owner: only alphbet character");
+      }
+
+      for (let i = 0; i < this.invitees.length; i++) {
+        if (!this.invitees[i].name.match(alReg)) {
+          this.errors.push("invitee: only alphbet chracter");
+          break;
         }
+      }
 
-        //compareDate return false if arg1 is earlier than arg2, in year, month and date
-        if(!compareDate(this.formatedDate, Date.now())){
-            this.errors.push("date: cannot be the past");
-        }
+      console.log(this.errors);
+      // for(let i=0; i<)
 
-        let start_time = toDate(this.formatedDate, this.stTime);
-        let end_time = toDate(this.formatedDate, this.edTime);
-
-        //toDate return time stamp
-        if(start_time < + new Date(this.formatedDate).setHours(6)){
-            this.errors.push("start time: cannot be earlier than 6 am")
-        }
-
-        // console.log(end_time<=start_time, end_time, start_time, this.edTime, this.stTime);
-        if(end_time<=start_time){
-            this.errors.push("end time: cannot be earlier or same to start time");
-        }
-
-        if(end_time> toDate(this.formatedDate, "23:59")){
-            this.errors.push("end time: cannot be later than 23:59/11:59 PM");
-        }
-
-        if(!this.owner.match(alReg)){
-            this.errors.push("owner: only alphbet character");
-        }
-
-        for(let i=0; i<this.invitees.length; i++){
-            if(!this.invitees[i].name.match(alReg)){
-                this.errors.push("invitee: only alphbet chracter");
-                break;
-            }
-        }
-
-        // // check time overlap
-        // for(let i=0; i<)
-
-        if(this.errors.length > 0){
-            return false;
-        }
-        return true
+      if (this.errors.length > 0) {
+        return false;
+      }
+      return true;
     },
-    submitEvent: function() {
+    checkOverlap: function () {
+      //check time overlap
+      console.log("checkOverlap");
+      return axios
+        .get(this.eventsUrl)
+        .then((response) => {
+          if (response.statusText === "OK") {
+            // console.log(response);
+            return response.data;
+          }
+        })
+        .then((data) => {
+          console.log("data", data);
+          for (const id in data) {
+            // console.log("event", data[id]);
+            let event = data[id];
+            // if Astart<=Bend and Aend>=Bstart, then time overlap occurred
+            // console.log(
+            //   this.start_time,
+            //   this.end_time,
+            //   event.st_time,
+            //   event.ed_time,
+            //   "check",
+            //   (this.start_time <= event.ed_time) &&
+            //   (this.end_time >= event.st_time)
+            // );
+            if (
+              (this.start_time < event.ed_time) &&
+              (this.end_time > event.st_time)
+            ) {
+              console.log("overlap occured");
+              this.errors.push(
+                "time overlap occoured with event: " + event.name
+              );
+              this.errors.push(new Date(event.ed_time).toString());
+              this.errors.push(new Date(event.st_time).toString());
+            }
+          }
+          return "checkOverlapDone"
+        });
+    },
+    submitEvent: function () {
       //console.log("1");
       //thing to do change date_st_time and date_ed_time to DATE
       //   console.log(this.invitees);
       // validate submit data
-      this.dbUrl = this.firestoneUrl+this.formatedDate+".json";
-      console.log(this.dbUrl);
-      if (this.validateInput()){
-        // upload event to server        
-        // then update local data
-        let event = {
-            name: this.name,
-            date: this.formatedDate,
-            st_time: toDate(this.formatedDate, this.stTime),
-            ed_time: toDate(this.formatedDate, this.edTime),
-            owner: this.owner,
-            invitees: this.invitees,
-        };
-        axios.post(this.dbUrl, event)
-        .then((response) => {
-            if(response.statusText=="OK"){
-                return response.data;
-            }
-        }).then((data) => {
-            event.id = data.name;
-            this.$emit("submitEvent");
-        }).catch((error) => {
-            console.log(error);
+      this.eventsUrl = this.firestoneUrl + this.formatedDate + ".json";
+      //   console.log(this.eventsUrl);
+      if (this.validateInput()) {
+        this.checkOverlap().then((returnVal) => {
+          console.log(returnVal);
+          if (this.errors.length===0) {
+            // upload event to server
+            // then update local data
+            let event = {
+              name: this.name,
+              date: this.formatedDate,
+              st_time: toDate(this.formatedDate, this.stTime),
+              ed_time: toDate(this.formatedDate, this.edTime),
+              owner: this.owner,
+              invitees: this.invitees,
+            };
+            axios
+              .post(this.eventsUrl, event)
+              .then((response) => {
+                if (response.statusText == "OK") {
+                  return response.data;
+                }
+              })
+              .then((data) => {
+                event.id = data.name;
+                this.$emit("submitEvent", event);
+                this.resetForm();
+              })
+              .catch((error) => {
+                console.log(error);
+              });
+          } else {
+            console.log(this.errors);
+            this.stTime = "";
+            this.edTime = "";
+          }
+        }).catch((err) => {
+            console.Error(err);
         });
       }
+
+      //   if (this.errors.length>0){
+      //     // upload event to server
+      //     // then update local data
+      //     let event = {
+      //         name: this.name,
+      //         date: this.formatedDate,
+      //         st_time: toDate(this.formatedDate, this.stTime),
+      //         ed_time: toDate(this.formatedDate, this.edTime),
+      //         owner: this.owner,
+      //         invitees: this.invitees,
+      //     };
+      //     axios.post(this.eventsUrl, event)
+      //     .then((response) => {
+      //         if(response.statusText=="OK"){
+      //             return response.data;
+      //         }
+      //     }).then((data) => {
+      //         event.id = data.name;
+      //         // this.$emit("submitEvent", event);
+      //     }).catch((error) => {
+      //         console.log(error);
+      //     });
+      //   } else {
+      //       console.log(this.errors);
+      //   }
     },
+    resetForm: function(){
+      this.name = defaultName;
+      this.date = defaultDate;
+      this.stTime = defaultStTime;
+      this.edTime = defaultEdTime;
+      this.owner = defaultOwner;
+      this.numInvitees = defaultNumInvitees;
+    }
   },
 };
 </script>

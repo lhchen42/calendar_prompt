@@ -1,32 +1,28 @@
 <template>
   <div>
     <p>{{ date.getDate() }}</p>
-    <div
-      class="event-item"
-      v-for="event in eventsToday"
-      v-bind:key="event"
-    >
+    <div class="event-item" v-for="event in eventsToday" v-bind:key="event">
       {{ event.name }}
     </div>
+    <div v-if="showTreeDots">...</div>
   </div>
 </template>
 
 <script>
-
-const axios = require('axios');
+const axios = require("axios");
 
 export default {
   name: "calendarGrid",
   props: {
     info: Object,
     firestoneUrl: String,
-    reload: Number
   },
   data: function() {
     return {
       plainDate: this.info.date,
       isCurrentMonth: this.info.currentMonth,
-      events: this.dayEvents
+      events: [],
+      maxToShow: 4,
     };
   },
   computed: {
@@ -35,50 +31,49 @@ export default {
       return new Date(this.plainDate);
     },
     eventsToday: function() {
-      // console.log(this.events);
-      return this.events;
-    }
+      let eventsToShow = this.events.slice(0, this.maxToShow);
+      return eventsToShow;
+    },
+    showTreeDots: function() {
+      return this.events.length > 4 ? true : false;
+    },
   },
-  watch: {
-    reload() {
-      console.log(this.reload);
-      this.loadEvents();
-      this.$emit("reloadDone");
-    }
-  },
+  watch: {},
   methods: {
     loadEvents: function() {
       // load event data from server
-      const eventsUrl = this.firestoneUrl+this.plainDate+".json";
-      axios.get(eventsUrl)
+      const eventsUrl = this.firestoneUrl + this.plainDate + ".json";
+      axios
+        .get(eventsUrl)
         .then((response) => {
-          if(response.statusText=="OK"){
+          if (response.statusText == "OK") {
             // console.log(response);
-            return response.data
+            return response.data;
           }
-        }).then((data) => {
-          const result = []
-          for(const id in data){
+        })
+        .then((data) => {
+          const result = [];
+          for (const id in data) {
             result.push({
-                id: id,
-                name: data[id].name,
-                st_time: data[id].st_time,
-                ed_time: data[id].ed_time,
-                owner: data[id].owner,
-                invitees: data[id].invitees
-             }
-            )
+              id: id,
+              name: data[id].name,
+              st_time: data[id].st_time,
+              ed_time: data[id].ed_time,
+              owner: data[id].owner,
+              invitees: data[id].invitees,
+            });
             // console.log(result);
           }
           this.events = result;
-        }).catch((error) => {
+        })
+        .catch((error) => {
           console.log(error);
-      });
+        });
     },
   },
   mounted() {
     this.loadEvents();
-  }
+  },
 };
 </script>
 
@@ -87,9 +82,9 @@ export default {
 .calendar-grid {
   border: 1px solid #ddd;
   background-color: beige;
-  /* overflow: hidden; */
+  overflow: hidden;
 }
-.calendar-grid > p{
+.calendar-grid > p {
   margin: 2px auto;
 }
 .calendar-grid > .event-item {
