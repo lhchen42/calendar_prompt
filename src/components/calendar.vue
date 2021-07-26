@@ -1,13 +1,13 @@
 <template>
   <div class="calendar">
-    <div class="form-container">
+    <!-- <div class="form-container">
       <div class="calendar-form">
         <calendarForm
           v-on:submitEvent="addEvent"
           v-bind:dbUrl="firestoneUrl"
         ></calendarForm>
       </div>
-    </div>
+    </div> -->
     <div class="calendar-container">
       <div>
         <div class="calendar-nav">
@@ -31,6 +31,7 @@
           v-bind:key="data.date"
           v-bind:info="data"
           v-bind:firestoneUrl="firestoneUrl"
+          @showForm="showForm"
         ></calendarGrid>
       </div>
     </div>
@@ -39,7 +40,7 @@
 
 <script>
 import calendarGrid from "./calendarGrid";
-import calendarForm from "./calendarForm";
+// import calendarForm from "./calendarForm";
 
 const days = ["Sun", "Mon", "Tue", "Wed", "Thur", "Fri", "Sat"];
 const months = [
@@ -63,7 +64,7 @@ const firebaseDB = "https://fir-ea490-default-rtdb.firebaseio.com/";
 
 export default {
   name: "calendar",
-  components: { calendarGrid, calendarForm },
+  components: { calendarGrid },
   data: function() {
     return {
       //   calendarData: []
@@ -93,13 +94,13 @@ export default {
       this.gridRef = [];
       let newMonth = new Date(this.now).getMonth() + this.increaseValue;
       this.now = new Date(this.now).setMonth(newMonth);
-      console.log(new Date(this.now));
+      // console.log(new Date(this.now));
     },
     prevMonth: function() {
       this.gridRef = [];
       let newMonth = new Date(this.now).getMonth() - this.increaseValue;
       this.now = new Date(this.now).setMonth(newMonth);
-      console.log(new Date(this.now));
+      // console.log(new Date(this.now));
     },
     addEvent: function(event) {
       // add new event to database
@@ -132,6 +133,18 @@ export default {
         this.gridRef.push(el);
       }
     },
+    showForm: function(date) {
+      // console.log(event);
+      // console.log(date);
+      let selectedRef=null;
+      for(const i in this.gridRef){
+        if(this.gridRef[i].info.date===date){
+          // console.log(this.gridRef[i].info.date, date);
+          selectedRef = this.gridRef[i];
+        }
+      }
+      this.$emit("showForm", selectedRef);
+    }
   },
   computed: {
     calendarData: function() {
@@ -161,7 +174,7 @@ export default {
           currentMonth: date.getMonth() == firstDay.getMonth() ? true : false,
         });
       }
-      console.log(previousMonth, currentMonth);
+      // console.log(previousMonth, currentMonth);
       return [...previousMonth, ...currentMonth];
     },
     month: function() {
@@ -182,12 +195,15 @@ export default {
 .calendar {
   position: relative;
   display: flex;
-  background-color: rgba(243, 243, 243, 0.8);
   max-width: 1500px;
   min-width: 1000px;
   margin: auto;
   padding: 10px;
   justify-content: center;
+  border-radius: 10px;
+  -moz-box-shadow: 0 0 3px rgb(102, 102, 102);
+  -webkit-box-shadow: 0 0 3px rgb(102, 102, 102);
+  box-shadow: 0 0 3px rgb(102, 102, 102);
 }
 .form-container {
   border-right: 1px solid black;

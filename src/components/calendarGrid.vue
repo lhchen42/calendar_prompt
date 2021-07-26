@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div @click="showForm($event)">
     <p>{{ date.getDate() }}</p>
     <div class="event-item" v-for="event in eventsToday" v-bind:key="event">
       {{ event.name }}
@@ -10,12 +10,12 @@
 
 <script>
 const axios = require("axios");
-
 export default {
   name: "calendarGrid",
   props: {
     info: Object,
     firestoneUrl: String,
+    // reload: Boolean
   },
   data: function() {
     return {
@@ -38,11 +38,16 @@ export default {
       return this.events.length > 4 ? true : false;
     },
   },
-  watch: {},
+  watch: {
+    // reload: function(){
+    //   this.loadEvents();
+    // }
+  },
   methods: {
     loadEvents: function() {
       // load event data from server
       const eventsUrl = this.firestoneUrl + this.plainDate + ".json";
+      // console.log(eventsUrl);
       axios
         .get(eventsUrl)
         .then((response) => {
@@ -70,6 +75,14 @@ export default {
           console.log(error);
         });
     },
+    reload: function() {
+      console.log("reload");
+      this.loadEvents();
+      console.log(this.events);
+    },
+    showForm: function() {
+      this.$emit("showForm", this.plainDate);
+    },
   },
   mounted() {
     this.loadEvents();
@@ -88,11 +101,11 @@ export default {
   margin: 2px auto;
 }
 .calendar-grid > .event-item {
-  width: 97%;
-  background-color: aqua;
+  width: 94%;
+  background-color: lightcoral;
   text-align: left;
   color: white;
-  margin: auto;
+  margin: 0 auto 1px auto;
   padding: 2px;
   border-radius: 5px;
 }

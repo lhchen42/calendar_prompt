@@ -1,5 +1,6 @@
 <template>
   <div class="calendarForm-main">
+    <div>
     <form @submit.prevent="submitEvent">
       <p v-if="errors.length">
       <b>Please correct the following error(s):</b>
@@ -13,7 +14,7 @@
       </div>
       <div>
         <label>Date: </label>
-        <input type="date" v-bind:min="minDate" v-model="date" required />
+        <input type="date" v-bind:min="minDate" v-model="date" :disabled="date!=''" :required="date==''"/>
       </div>
       <div>
         <label> Start Time: </label>
@@ -25,7 +26,9 @@
       </div>
       <div>
         <label> Owner: </label>
-        <input type="text" v-model="owner" required />
+        <select v-model="owner" required>
+          <option v-for="user in users" :key="user" :value="user">{{ user }}</option>
+        </select>
       </div>
       <div>
         <label> Invitees: </label>
@@ -47,12 +50,13 @@
         <button type="submit">Add Event</button>
       </div>
     </form>
+    </div>
   </div>
 </template>
 
 <script>
 // import axios from 'axios'
-
+import myMixin from './mixins/myMixin'
 const minDate = "2000-01-01";
 const minHour = "06:00";
 const maxHour = "23:59";
@@ -84,6 +88,7 @@ const compareDate = function (date1, date2) {
   //   console.log(t_date1.getFullYear()<t_date2.getFullYear())
   //  && t_date1.getMonth()<t_date2.getMonth
   //  && t_date1.getDate()<t_date2.getDate())
+  console.log(t_date1, t_date2);
   if (t_date1 < t_date2) {
     return false;
   }
@@ -91,9 +96,13 @@ const compareDate = function (date1, date2) {
 };
 
 export default {
+  mixins: [myMixin],
   name: "calendarForm",
   props: {
     events: Array,
+    selectedDate: String,
+    users: Array,
+    currentUser: String
   },
   data: function () {
     return {
@@ -112,7 +121,18 @@ export default {
       eventsUrl: "",
     };
   },
+  watch: {
+    selectedDate: function(newVal){
+      this.date = newVal;
+    },
+    currentUser: function(newVal){
+      this.owner = newVal;
+    }
+  },
   computed: {
+    // date: function() {
+    //   return this.selectedDate;
+    // },
     invitees: function () {
       let l = [];
       for (let i = 0; i < this.numInvitees; i++) {
@@ -135,7 +155,7 @@ export default {
   },
   methods: {
     validateInput: function () {
-      // name: characters other than alphebet or number is disallow
+      // name: characters other than alphebet or number or whitespace is disallow
       // Date: any date before "today" is disallow, also edit to the appointment in the past is disallow
       // st_Time: time earlier than 6 am is disallow
       // ed_Time: time earlier than st_Time or later than 11:59 is disallow
@@ -145,15 +165,15 @@ export default {
       console.log("validate form");
 
       this.errors = [];
-      let alnumReg = "^[a-zA-Z0-9]+$";
+      let alnumReg = "^[a-zA-Z0-9\\s]+$";
       let alReg = "^[a-zA-Z]+$";
       if (!this.name.match(alnumReg)) {
         this.errors.push("name: only alphbet characters and number");
       }
 
-      //compareDate return false if arg1 is earlier than arg2, in year, month and date
-      if (!compareDate(this.formatedDate, Date.now())) {
-        this.errors.push("date: cannot be the past");
+      // compareDate return false if arg1 is earlier than arg2, in year, month and date
+      if (!compareDate(this.formatedDate, this.getDateWithoutTime(Date.now()))) {
+        this.errors.push("date: cannot add event to the past");
       }
 
       //toDate return time stamp
@@ -249,6 +269,7 @@ export default {
               st_time: toDate(this.formatedDate, this.stTime),
               ed_time: toDate(this.formatedDate, this.edTime),
               owner: this.owner,
+              numInvitees: this.numInvitees,
               invitees: this.invitees,
             };
             axios
@@ -309,6 +330,9 @@ export default {
       this.edTime = defaultEdTime;
       this.owner = defaultOwner;
       this.numInvitees = defaultNumInvitees;
+    },
+    mounted: function() {
+      console.log(this.date);
     }
   },
 };
@@ -317,6 +341,17 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style>
 .calendarForm-main {
+  margin: auto;
+  display: flex;
+  justify-content: center;
+}
+.calendarForm-main > div {
+  padding: 40px;
+  border-radius: 20px;
+  background-color: white;
+  -moz-box-shadow: 0 0 3px rgb(102, 102, 102);
+  -webkit-box-shadow: 0 0 3px rgb(102, 102, 102);
+  box-shadow: 0 0 3px rgb(102, 102, 102);
 }
 .calendarForm-main > form {
   display: flex;
