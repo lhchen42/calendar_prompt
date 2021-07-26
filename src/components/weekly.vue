@@ -123,8 +123,8 @@ export default {
         this.dayRef[index].push();
       }
     },
-    showDetails: function(event, ref) {
-      this.$emit("showDetails", event, ref);
+    showDetails: function(event, eventRef, hourRef) {
+      this.$emit("showDetails", event, eventRef, hourRef);
     },
   },
   mounted() {

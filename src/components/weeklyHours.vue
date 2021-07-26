@@ -48,7 +48,7 @@ export default {
       }
     },
     showDetails: function(event, ref) {
-      this.$emit("showDetails", event, ref);
+      this.$emit("showDetails", event, ref, this);
     },
     loadEvents: function() {
       const plainDate = this.getDateString(this.date);
