@@ -31,6 +31,7 @@
       ><detailBox
         @showDetails="showDetails"
         @deleteEvent="deleteEvent"
+        @updateEvent="updateEvent"
         :event="event"
         :users="sampleUsers"
         :currentUser="currentUser"
@@ -69,6 +70,7 @@ export default {
       models: null,
       target: null,
       detailsTarget: null,
+      detailsHourRef: null,
       event: null,
       sampleUsers: myConst.sampleUsers,
       currentUser: myConst.sampleUsers[0], // default current user
@@ -88,18 +90,24 @@ export default {
       this.target.events.push(event);
       this.target = null;
     },
-    showDetails: function(event, ref) {
+    showDetails: function(event, eventRef, hoursRef) {
       // show detail modal on clicking event box in weekly tab
       // emit all the way from weeklyEventBox
       // month tab not support yet
       this.detailModal.isActive = true;
       this.event = event;
-      this.detailsTarget = ref;
+      this.detailsTarget = eventRef;
+      this.detailsHourRef = hoursRef;
     },
     deleteEvent: function() {
       this.detailsTarget.event = null;
       this.detailModal.isActive = false;
     },
+    updateEvent: function() {
+      this.detailsTarget.event = null;
+      this.detailsHourRef.loadEvents();
+      this.detailModal.isActive = false;
+    }
   },
   computed: {
     selectedDate() {
@@ -184,7 +192,6 @@ export default {
   box-shadow: 0 0 5px rgb(102, 102, 102);
 }
 #app button:active {
-  box-shadow: 0 5px #666;
   transform: translateY(2px);
 }
 #app .month-year {

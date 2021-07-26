@@ -166,7 +166,7 @@ export default {
 
       this.errors = [];
       let alnumReg = "^[a-zA-Z0-9\\s]+$";
-      let alReg = "^[a-zA-Z]+$";
+      let alReg = "^[a-zA-Z\\s]+$";
       if (!this.name.match(alnumReg)) {
         this.errors.push("name: only alphbet characters and number");
       }
@@ -221,7 +221,7 @@ export default {
           }
         })
         .then((data) => {
-          console.log("data", data);
+          // console.log("data", data);
           for (const id in data) {
             // console.log("event", data[id]);
             let event = data[id];
@@ -332,7 +332,7 @@ export default {
       this.numInvitees = defaultNumInvitees;
     },
     mounted: function() {
-      console.log(this.date);
+      // console.log(this.date);
     }
   },
 };

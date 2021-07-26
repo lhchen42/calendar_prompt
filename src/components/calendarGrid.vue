@@ -1,5 +1,5 @@
 <template>
-  <div @click="showForm($event)">
+  <div :class="{ today: isToday }" @click="showForm($event)">
     <p>{{ date.getDate() }}</p>
     <div class="event-item" v-for="event in eventsToday" v-bind:key="event">
       {{ event.name }}
@@ -9,8 +9,11 @@
 </template>
 
 <script>
+import myMixin from "./mixins/myMixin";
+
 const axios = require("axios");
 export default {
+  mixins: [myMixin],
   name: "calendarGrid",
   props: {
     info: Object,
@@ -20,6 +23,7 @@ export default {
   data: function() {
     return {
       plainDate: this.info.date,
+      now: Date.now(),
       isCurrentMonth: this.info.currentMonth,
       events: [],
       maxToShow: 4,
@@ -36,6 +40,9 @@ export default {
     },
     showTreeDots: function() {
       return this.events.length > 4 ? true : false;
+    },
+    isToday: function() {
+      return this.plainDate === this.getDateString(this.now);
     },
   },
   watch: {
@@ -78,7 +85,7 @@ export default {
     reload: function() {
       console.log("reload");
       this.loadEvents();
-      console.log(this.events);
+      // console.log(this.events);
     },
     showForm: function() {
       this.$emit("showForm", this.plainDate);
@@ -91,11 +98,13 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style>
+<style scoped>
 .calendar-grid {
+  font-family: Helvetica;
+  font-size: 11pt;
   border: 1px solid #ddd;
-  background-color: beige;
   overflow: hidden;
+  text-align: center;
 }
 .calendar-grid > p {
   margin: 2px auto;
@@ -108,5 +117,9 @@ export default {
   margin: 0 auto 1px auto;
   padding: 2px;
   border-radius: 5px;
+}
+.today {
+  background-color: lightblue;
+  font-weight: 600;
 }
 </style>

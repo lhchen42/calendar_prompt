@@ -14,7 +14,7 @@
       </div>
       <div>
         <label>Date: </label>
-        <input type="date" v-bind:min="minDate" v-model="date" :disabled="disableForm"/>
+        <input type="date" v-bind:min="minDate" v-model="date" disabled/>
       </div>
       <div>
         <label> Start Time: </label>
@@ -26,7 +26,7 @@
       </div>
       <div>
         <label> Owner: </label>
-        <select v-model="owner" :disabled="disableForm" required>
+        <select v-model="owner" disabled required>
           <option v-for="user in users" :key="user" :value="user">{{ user }}</option>
         </select>
         <!-- <input type="text" v-model="owner" required /> -->
@@ -49,8 +49,9 @@
         </div>
       </div>
       <div>
-        <button @click.stop.prevent="deleteEvent" :disabled="disableForm">delete</button>
-        <button @click.stop.prevent="updateEvent" disabled>update</button>
+        <button @click.stop.prevent="deleteEvent" :disabled="disableForm">Delete</button>
+        <button @click.stop.prevent="updateEvent" :disabled="disableForm">Update</button>
+        <button @click.stop.prevent="exportJSON">Export</button>
       </div>
     </form>
     </div>
@@ -137,6 +138,23 @@ export default {
           this.numInvitees = this.event.numInvitees;
           this.invitees = this.event.invitees;
         }
+      },
+      numInvitees: function(){
+        if(this.invitees){
+          if(this.numInvitees>this.invitees.length){
+            this.invitees.push({name: ''});
+          }
+          if(this.numInvitees<this.invitees.length){
+            this.invitees.pop();
+          }
+        }
+        else{
+          let l = [];
+          for (let i = 0; i < this.numInvitees; i++) {
+            l.push({ name: "" });
+          }
+          this.invitees = l;
+        }
       }
   },
   computed: {
@@ -160,12 +178,62 @@ export default {
                   this.$emit("deleteEvent");
               }
           })
+      },
+      updateEvent: function() {
+        console.log("updateEvent")
+        const firebaseUrl = myConst.firebaseDB + this.event.date + "/" + this.event.id + ".json";
+        const formatedDate = this.monthFirstFormat(this.date);
+        let event = {
+          name: this.name,
+          date: formatedDate,
+          st_time: this.toDate(formatedDate, this.stTime),
+          ed_time: this.toDate(formatedDate, this.edTime),
+          owner: this.owner,
+          numInvitees: this.numInvitees,
+          invitees: this.invitees
+        }
+        if(this.validateInput(event)) {
+            this.checkOverlap(event, this.event.id).then((returnVal) => {
+            console.log(returnVal);
+            if(this.errors.length === 0){
+              axios.put(firebaseUrl, event).then((response) => {
+                // console.log(response);
+                if(response.statusText === "OK"){
+                  console.log("update success")
+                  return response.data;
+                }
+              }).then((data) => {
+                this.$emit("updateEvent", data);
+              });
+            }
+          });
+        }
+      },
+      exportJSON() {
+        const event = {
+          name: this.name,
+          date: this.date,
+          st_time: this.stTime,
+          ed_time: this.edTime,
+          owner: this.owner,
+          numInvitees: this.numInvitees,
+          invitees: this.invitees
+        }
+        let jsonStr = JSON.stringify(event);
+        let url = 'data:application/json;charset=utf-8,'+ encodeURIComponent(jsonStr);
+        let defaultName = event.name+".json";
+        let tmpElement = document.createElement('a');
+        tmpElement.setAttribute('href', url);
+        tmpElement.setAttribute('download', defaultName);
+        tmpElement.click();
+        tmpElement.remove();
       }
   },
   mounted: function() {
 
   }
-};
+}
+
 </script>
  
 <!-- Add "scoped" attribute to limit CSS to this component only -->

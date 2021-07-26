@@ -80,7 +80,7 @@ export default {
       // }
     },
     showForm: function() {
-      console.log("evenbox clicked");
+      // console.log("evenbox clicked");
       this.$emit("showDetails", this.event, this);
     },
   },

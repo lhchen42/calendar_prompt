@@ -30,7 +30,7 @@ export default {
       this.indexSelected = index;
       for (let i = 0; i < this.tabs.length; i++) {
         if (i == index) {
-          console.log(this.childTabs[i].isActive);
+          // console.log(this.childTabs[i].isActive);
           this.childTabs[i].isActive = true;
         } else {
           this.childTabs[i].isActive = false;

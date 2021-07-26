@@ -40,6 +40,7 @@
 
 <script>
 import calendarGrid from "./calendarGrid";
+import myMixin from "./mixins/myMixin";
 // import calendarForm from "./calendarForm";
 
 const days = ["Sun", "Mon", "Tue", "Wed", "Thur", "Fri", "Sat"];
@@ -63,6 +64,7 @@ const firebaseDB = "https://fir-ea490-default-rtdb.firebaseio.com/";
 // const axios = require('axios');
 
 export default {
+  mixins: [myMixin],
   name: "calendar",
   components: { calendarGrid },
   data: function() {
@@ -136,15 +138,18 @@ export default {
     showForm: function(date) {
       // console.log(event);
       // console.log(date);
-      let selectedRef=null;
-      for(const i in this.gridRef){
-        if(this.gridRef[i].info.date===date){
+      let selectedRef = null;
+      for (const i in this.gridRef) {
+        if (this.gridRef[i].info.date === date) {
           // console.log(this.gridRef[i].info.date, date);
           selectedRef = this.gridRef[i];
         }
       }
       this.$emit("showForm", selectedRef);
-    }
+    },
+    isToday: function(data) {
+      return data === this.getDateString(this.now);
+    },
   },
   computed: {
     calendarData: function() {
@@ -234,14 +239,17 @@ export default {
 
 .calendar-header {
   border: 1px solid white;
-  background-color: rgb(74, 170, 49);
-  color: white;
+  background-color: greenyellow;
+  color: black;
+  text-align: center;
+  font-weight: 600;
 }
 .calendar-main {
   display: grid;
   grid-template-columns: repeat(7, minmax(140px, 1fr));
-  grid-template-rows: 20px repeat(6, minmax(140px, 1fr));
+  grid-template-rows: 20px repeat(6, minmax(135px, 1fr));
   color: #ddd;
+  background-color: rgb(233, 245, 235);
 }
 
 .currentMonth {
